@@ -13,7 +13,7 @@ program.parse();
 const options = program.opts();
 
 if (!options.cache) {
-    console.log('Please specify a cache directory');
+    console.log('Please, specify a cache directory');
     return;
 }
 
@@ -80,9 +80,7 @@ const requestListener = async function (req, res) {
             res.end();
             break;
     }
-
 }
-
 
 const server = http.createServer(requestListener);
 server.listen(options.port, options.host, () => {
