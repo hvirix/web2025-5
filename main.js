@@ -1,6 +1,7 @@
 const { program } = require ('commander');
-const fs = require ('node:fs');
+const fs = require ('fs');
 const http = require ('http');
+const path = require ('path');
 
 program
     .option('-h, --host <address>')
@@ -28,6 +29,18 @@ if (!options.host) {
 }
 
 const requestListener = function (req, res) {
+    const url = req.url;
+    const filePath = path.join(options.cache, `${url}.jpg`);
+
+    switch(req.method) {
+        case 'GET':
+            fs.promises.readFile(filePath)
+                .then(image => {
+                    res.end(image);
+                })
+                .catch(err => {});
+
+    }
 
 }
 
@@ -36,3 +49,5 @@ const server = http.createServer(requestListener);
 server.listen(options.port, options.host, () => {
     console.log(`Server is running on ${options.host}:${options.port}`);
 });
+
+
