@@ -4,11 +4,13 @@
   "description": "",
   "main": "main.js",
   "scripts": {
+    "start": "nodemon main.js --host localhost --port 8000 --cache ./cache",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "private": true,
   "dependencies": {
     "commander": "^13.1.0",
+    "path": "^0.12.7",
     "superagent": "^10.2.0"
   },
   "devDependencies": {
