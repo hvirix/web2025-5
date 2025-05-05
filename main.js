@@ -2,7 +2,7 @@ const { program } = require ('commander');
 const fs = require ('fs');
 const http = require ('http');
 const path = require ('path');
-const {image} = require("superagent/lib/node/parsers");
+const superagent = require ('superagent');
 
 program
     .option('-h, --host <address>')
@@ -11,8 +11,6 @@ program
 
 program.parse();
 const options = program.opts();
-
-console.log(options.cache)
 
 if (!options.cache) {
     console.log('Please specify a cache directory');
@@ -35,41 +33,52 @@ const requestListener = async function (req, res) {
 
     switch (req.method) {
         case 'GET':
-            let image
-            try{
+            let image;
+            if(fs.existsSync(filePath))
+            {
                 image = await fs.promises.readFile(filePath);
                 res.setHeader('Content-Type', 'image/jpeg');
                 res.statusCode = 200;
                 res.end(image);
-            }catch(err){
-                if (err.code === 'ENOENT') {
-                    if (!image) {
+            }
+            else
+            {
+                await superagent.get(`https://http.cat/${url}`)
+                    .then(response => {
+                        image = response.body;
+                        fs.promises.writeFile(filePath, image);
+                        res.setHeader('Content-Type', 'image/jpeg');
+                        res.statusCode = 200;
+                        res.end(image);
+                    })
+                    .catch(err => {
                         res.statusCode = 404;
                         res.end();
-                    }
-                }
+                    });
             }
-
-
             break;
+
         case 'PUT':
             const chunks = [];
             req.on('data', chunk => chunks.push(chunk));
             req.on('end', async () => {
-                const imageData = Buffer.concat(chunks);
-                await fs.promises.writeFile(filePath, imageData);
+                const image = Buffer.concat(chunks);
+                await fs.promises.writeFile(filePath, image);
                 res.statusCode = 201;
                 res.end();
             });
             break;
+
         case 'DELETE':
             fs.promises.unlink(filePath);
             res.statusCode = 200;
             res.end();
             break;
+
         default:
             res.statusCode = 405;
             res.end();
+            break;
     }
 
 }
